@@ -123,6 +123,8 @@ Do not explain.
 """
 
     accuracy_prompt = f"""
+You are evaluating a Question Answering system.
+
 Question:
 {query}
 
@@ -132,20 +134,24 @@ Ground Truth:
 Generated Answer:
 {answer}
 
-Does the generated answer convey the same meaning as the ground truth?
+Evaluate how semantically similar the generated answer is to the ground truth.
 
-Ignore wording differences.
+Scoring Guidelines:
 
-If the generated answer is semantically equivalent to the ground truth,
-reply ONLY with:
+1.0 = Meaning is completely equivalent or mostly correct. All important information is present. 
+Minor details are missing or wording differs.
 
-1
+0.6 = Partially correct. Some important information is missing.
 
-Otherwise reply ONLY with:
+0.4 = Only a small part of the answer is correct.
 
-0
+0.2 = Mostly incorrect.
 
-Do not explain your answer.
+0.0 = Completely incorrect or unrelated.
+
+Return ONLY one decimal number between 0.0 and 1.0.
+
+Do not explain your score.
 """
 
     def get_score(prompt):

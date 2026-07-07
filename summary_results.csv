@@ -1,5 +1,5 @@
 Embedding,Retriever,Correct,Total,Accuracy,Faithfulness,Answer_Relevancy,Context_Quality,Latency
-BAAI/bge-base-en-v1.5,Chroma MMR,21.0,30,0.7,0.79,0.717,0.733,1.933
-BAAI/bge-base-en-v1.5,Ensemble BM25 + Chroma,20.0,30,0.667,0.8,0.75,0.75,2.137
-sentence-transformers/all-MiniLM-L6-v2,Chroma MMR,23.0,30,0.767,0.8,0.717,0.717,6.287
-sentence-transformers/all-MiniLM-L6-v2,Ensemble BM25 + Chroma,20.0,30,0.667,0.8,0.733,0.733,5.053
+BAAI/bge-base-en-v1.5,Chroma MMR,23.4,30,0.78,0.79,0.717,0.733,1.993
+BAAI/bge-base-en-v1.5,Ensemble BM25 + Chroma,24.0,30,0.8,0.8,0.75,0.75,2.264
+sentence-transformers/all-MiniLM-L6-v2,Chroma MMR,23.8,30,0.793,0.8,0.717,0.717,3.475
+sentence-transformers/all-MiniLM-L6-v2,Ensemble BM25 + Chroma,23.8,30,0.793,0.8,0.733,0.733,2.917
