@@ -144,7 +144,7 @@ if uploaded_files:
         best_score = docs_with_scores[0][1]
         print("Best Score:", best_score)
 
-        if best_score > 0.9 and not is_summary_request:
+        if best_score > 1 and not is_summary_request:
             st.subheader("Answer")
             st.write("Out of scope: The answer is not present in the uploaded document.")
 
