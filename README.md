@@ -41,7 +41,7 @@ Built with **LangChain**, **ChromaDB**, **HuggingFace embeddings**, and **Ollama
 
 Standard RAGAS tooling ran into dependency conflicts with the LangChain version used here, so a **custom RAGAS-style evaluator** was built from scratch — using the local Llama 3.2 model itself as an LLM judge, keeping the entire evaluation loop offline.
 
-Each (embedding model × retrieval strategy) combination was benchmarked against an 18-question test set derived from an OS coursework document (disk scheduling algorithms, RAID), scoring:
+Each (embedding model × retrieval strategy) combination was benchmarked against a 30-question test set derived from an OS coursework document (disk scheduling algorithms, RAID), scoring:
 
 - **Faithfulness** — is every claim in the answer grounded in the retrieved context?
 - **Answer Relevancy** — does the answer address the question asked?
@@ -50,14 +50,31 @@ Each (embedding model × retrieval strategy) combination was benchmarked against
 
 ### Results
 
-| Embedding Model | Retriever | Accuracy | Faithfulness | Answer Relevancy | Context Quality | Avg. Latency (s) |
-|---|---|---|---|---|---|---|
-| BAAI/bge-base-en-v1.5 | Chroma MMR | **0.889** | 0.783 | 0.722 | 0.722 | **1.92** |
-| BAAI/bge-base-en-v1.5 | Ensemble BM25 + Chroma | 0.778 | **0.800** | **0.750** | **0.750** | 2.06 |
-| sentence-transformers/all-MiniLM-L6-v2 | Chroma MMR | **0.889** | **0.800** | 0.722 | 0.722 | 2.06 |
-| sentence-transformers/all-MiniLM-L6-v2 | Ensemble BM25 + Chroma | 0.778 | **0.800** | **0.750** | 0.722 | 2.46 |
+| Embedding Model | Retriever | Correct/Total | Accuracy | Faithfulness | Answer Relevancy | Context Quality | Avg. Latency (s) |
+|---|---|---|---|---|---|---|---|
+| BAAI/bge-base-en-v1.5 | Chroma MMR | 23.4/30 | 0.780 | 0.790 | 0.717 | 0.733 | **1.993** |
+| BAAI/bge-base-en-v1.5 | Ensemble BM25 + Chroma | **24.0/30** | **0.800** | **0.800** | **0.750** | **0.750** | 2.264 |
+| sentence-transformers/all-MiniLM-L6-v2 | Chroma MMR | 23.8/30 | 0.793 | **0.800** | 0.717 | 0.717 | 3.475 |
+| sentence-transformers/all-MiniLM-L6-v2 | Ensemble BM25 + Chroma | 23.8/30 | 0.793 | **0.800** | 0.733 | 0.733 | 2.917 |
 
-**Takeaway:** Chroma MMR consistently matched or beat the ensemble retriever on accuracy while being faster, across both embedding models. The ensemble retriever scored marginally higher on faithfulness/relevancy but at the cost of latency.
+**Takeaway:** BAAI/bge-base-en-v1.5 + Ensemble (BM25 + Chroma) is the strongest overall configuration — it leads on accuracy, faithfulness, and ties for the best answer relevancy and context quality, at a modest latency cost over the fastest option. More broadly, hybrid retrieval (Ensemble) matched or outperformed Chroma MMR alone on the qualitative metrics for both embedding models, suggesting BM25's keyword matching complements dense semantic search on this document set. Chroma MMR with bge-base-en-v1.5 remains the fastest configuration if latency is the priority, though it trails on accuracy and relevancy. Across all four configurations, Faithfulness consistently scores higher than Answer Relevancy and Context Quality (by roughly 5–8 points) — indicating that generation stays well-grounded in whatever context it receives, but retrieval isn't always surfacing the most relevant chunks.
+
+---
+
+## Shortcomings
+
+- **Small evaluation set.** With 30 questions, each individual question is worth ~3.3 percentage points — differences like 0.780 vs. 0.800 accuracy represent a single question and aren't necessarily statistically significant.
+- **Single-domain test set.** All benchmark questions are derived from one OS coursework document (disk scheduling, RAID). Results may not generalize to documents with different structure, length, or vocabulary.
+- **Self-graded evaluation.** Faithfulness, Answer Relevancy, and Context Quality are all scored by the same local Llama 3.2 model used for generation, rather than an independent judge model — this can introduce self-consistency bias.
+- **Unexplained latency variance.** `all-MiniLM-L6-v2` (a smaller model) showed higher latency than `bge-base-en-v1.5` in both retrieval strategies (3.475s and 2.917s vs. 1.993s and 2.264s), which is counter-intuitive on embedding size alone and hasn't been root-caused (e.g., isolating embedding time vs. retrieval time vs. generation time).
+## Future Scope
+
+- Expand the evaluation set beyond 30 questions and across multiple document domains for more statistically defensible, generalizable comparisons.
+- Profile embedding vs. retrieval vs. generation latency separately to explain the MiniLM latency anomaly.
+- Evaluate against an external, stronger judge model to reduce self-grading bias in the evaluation harness.
+- Add a larger embedding model (e.g. `bge-large-en-v1.5`) to test whether embedding capacity is a bigger lever than retrieval strategy choice.
+- Support additional file formats beyond PDF (e.g. `.docx`, `.txt`, `.md`).
+- Add conversational memory for multi-turn follow-up questions.
 
 ---
 
