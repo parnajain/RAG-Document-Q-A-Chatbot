@@ -52,12 +52,12 @@ Each (embedding model × retrieval strategy) combination was benchmarked against
 
 | Embedding Model | Retriever | Correct/Total | Accuracy | Faithfulness | Answer Relevancy | Context Quality | Avg. Latency (s) |
 |---|---|---|---|---|---|---|---|
-| BAAI/bge-base-en-v1.5 | Chroma MMR | 23.4/30 | 0.780 | 0.790 | 0.717 | 0.733 | **1.993** |
-| BAAI/bge-base-en-v1.5 | Ensemble BM25 + Chroma | **24.0/30** | **0.800** | **0.800** | **0.750** | **0.750** | 2.264 |
-| sentence-transformers/all-MiniLM-L6-v2 | Chroma MMR | 23.8/30 | 0.793 | **0.800** | 0.717 | 0.717 | 3.475 |
-| sentence-transformers/all-MiniLM-L6-v2 | Ensemble BM25 + Chroma | 23.8/30 | 0.793 | **0.800** | 0.733 | 0.733 | 2.917 |
+| BAAI/bge-base-en-v1.5 | Chroma MMR | 23.6/30 | 0.787 | 0.790 | 0.717 | 0.733 | 3.327 |
+| BAAI/bge-base-en-v1.5 | Ensemble BM25 + Chroma | **24.0/30** | **0.800** | **0.800** | **0.750** | **0.750** | 2.649 |
+| sentence-transformers/all-MiniLM-L6-v2 | Chroma MMR | 23.8/30 | 0.793 | **0.800** | 0.717 | 0.717 | **1.860** |
+| sentence-transformers/all-MiniLM-L6-v2 | Ensemble BM25 + Chroma | **24.0/30** | **0.800** | **0.800** | 0.733 | 0.717 | 5.086 |
 
-**Takeaway:** BAAI/bge-base-en-v1.5 + Ensemble (BM25 + Chroma) is the strongest overall configuration — it leads on accuracy, faithfulness, and ties for the best answer relevancy and context quality, at a modest latency cost over the fastest option. More broadly, hybrid retrieval (Ensemble) matched or outperformed Chroma MMR alone on the qualitative metrics for both embedding models, suggesting BM25's keyword matching complements dense semantic search on this document set. Chroma MMR with bge-base-en-v1.5 remains the fastest configuration if latency is the priority, though it trails on accuracy and relevancy. Across all four configurations, Faithfulness consistently scores higher than Answer Relevancy and Context Quality (by roughly 5–8 points) — indicating that generation stays well-grounded in whatever context it receives, but retrieval isn't always surfacing the most relevant chunks.
+**Takeaway:** BAAI/bge-base-en-v1.5 + Ensemble (BM25 + Chroma) remains the strongest overall configuration — it ties for the best accuracy and faithfulness (with MiniLM + Ensemble) but leads outright on answer relevancy and context quality, at less than half the latency of its MiniLM counterpart. More broadly, hybrid retrieval (Ensemble) matched or outperformed Chroma MMR alone on accuracy for both embedding models, suggesting BM25's keyword matching complements dense semantic search on this document set. sentence-transformers/all-MiniLM-L6-v2 + Chroma MMR is now the fastest configuration at 1.86s, though it trails on accuracy and relevancy. Across all four configurations, Faithfulness consistently scores higher than Answer Relevancy and Context Quality (by roughly 5–8 points) — indicating that generation stays well-grounded in whatever context it receives, but retrieval isn't always surfacing the most relevant chunks.
 
 ---
 
@@ -66,7 +66,7 @@ Each (embedding model × retrieval strategy) combination was benchmarked against
 - **Small evaluation set.** With 30 questions, each individual question is worth ~3.3 percentage points — differences like 0.780 vs. 0.800 accuracy represent a single question and aren't necessarily statistically significant.
 - **Single-domain test set.** All benchmark questions are derived from one OS coursework document (disk scheduling, RAID). Results may not generalize to documents with different structure, length, or vocabulary.
 - **Self-graded evaluation.** Faithfulness, Answer Relevancy, and Context Quality are all scored by the same local Llama 3.2 model used for generation, rather than an independent judge model — this can introduce self-consistency bias.
-- **Unexplained latency variance.** `all-MiniLM-L6-v2` (a smaller model) showed higher latency than `bge-base-en-v1.5` in both retrieval strategies (3.475s and 2.917s vs. 1.993s and 2.264s), which is counter-intuitive on embedding size alone and hasn't been root-caused (e.g., isolating embedding time vs. retrieval time vs. generation time).
+- **Latency is highly run-to-run variable.** Across evaluation runs, the latency ranking between the two embedding models flipped depending on retrieval strategy — `all-MiniLM-L6-v2` was faster than `bge-base-en-v1.5` under Chroma MMR (1.86s vs. 3.33s) but slower under BM25+Chroma Ensemble (5.09s vs. 2.65s). This inconsistency suggests latency here is more sensitive to system load, Ollama warm-up state, or caching effects than to the embedding model or retrieval strategy itself, and hasn't been isolated via component-level profiling (embedding vs. retrieval vs. generation time).
 ## Future Scope
 
 - Expand the evaluation set beyond 30 questions and across multiple document domains for more statistically defensible, generalizable comparisons.
